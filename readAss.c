@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "constants.h"
+#include "utilities.h"
 
 int main(int argc, char *argv[]) {
 	//echo cape-bone-iio > /sys/devices/bone_capemgr.*/slots
@@ -35,5 +36,6 @@ int main(int argc, char *argv[]) {
 double scale_flex(int vin) {
 	vin -= FLEX_MIN;
 	double proportion = vin * INV_FLEX_RANGE;
+	proportion = coerce(proportion, 0, 1);
 	return proportion;
 }
