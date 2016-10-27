@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "constants.h"
+
 int main(int argc, char *argv[]) {
 	//echo cape-bone-iio > /sys/devices/bone_capemgr.*/slots
 	// printf("Starting\n");
@@ -22,7 +24,7 @@ int main(int argc, char *argv[]) {
 		fp = fopen("/sys/devices/ocp.3/helper.15/AIN0", "rw");
 		if (fp == 0) {
 			printf("Ya done goofed...\n");
-			return;
+			return -1;
 		}
 		fgets(buff, 256, fp);
 		printf("The voltage: %s\n", buff);
@@ -30,6 +32,8 @@ int main(int argc, char *argv[]) {
 	}
 }
 
-int scaleShit() {
-
+double scale_flex(int vin) {
+	vin -= FLEX_MIN;
+	double proportion = vin * INV_FLEX_RANGE;
+	return proportion;
 }
