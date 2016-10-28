@@ -54,11 +54,15 @@ int readFileAss(char *fileName, char *name) {
 	fgets(buff, 256, fp);
 	double convertVolt = scale_flex(atoi(buff));
 	printf("The voltage for %s: %f\n and voltage is: %s\n", name, convertVolt, buff);
-	if (detectPos(convertVolt) == CLOSED) {
+	fingerPosition fingered = detectPos(convertVolt);
+	if (fingered == CLOSED) {
 		printf("Finger %s is closed\n", name);
 	}
-	else {
+	else  if (fingered == OPEN) {
 		printf("Finger %s is open! Please close!\n", name);
+	}
+	else {
+		printf("Finger %s is halfway! You can do it! You're almost there!\n", name);
 	}
 	fclose(fp);
 	return convertVolt;
@@ -72,7 +76,10 @@ double scale_flex(int vin) {
 }
 
 fingerPosition detectPos(double input) {
-	if (input > 0.5) {
+	if (input >= 0.2 && input <= 0.6) {
+		return HALFWAY;
+	}
+	if (input > 0.6) {
 		return CLOSED; 
 	}
 	else {
