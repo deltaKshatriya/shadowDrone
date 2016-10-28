@@ -21,5 +21,5 @@ readAss.o: readAss.c $(HFILES)
 	$(CC) $(CFLAGS) -c readAss.c
 
 clean:
-	rm -f *.o *~
+	rm -f *.o *~ *.exe
 	
