@@ -3,8 +3,11 @@ typedef enum fingerPosition {OPEN, HALFWAY, CLOSED} fingerPosition;
 
 
 //some cute functions
-double scale_flex(int vin);
+double scale_flex(int vin, int inputNum);
 fingerPosition detectPos(double input);
+
+//some constants for each finger
+
 
 
 //notes on measurement, so that you know, ya know?

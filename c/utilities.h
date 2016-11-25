@@ -1,2 +1,2 @@
-double coerce(double val, double min, double max);
+\double coerce(double val, double min, double max);
 
