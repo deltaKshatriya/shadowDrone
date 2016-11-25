@@ -35,13 +35,17 @@ int main(int argc, char *argv[]) {
 		char buffy[100];
 		printf("Do you really want this?\n");
 		scanf("%s", buffy);
-		double convertVolt = readFileAss("/sys/devices/ocp.3/helper.15/AIN0", "AIN0", 0);
+		//double convertVolt = readFileAss("/sys/devices/ocp.3/helper.15/AIN0", "AIN0", 0);
+		double convertVolt = scale_flex(1000, 0);
 		fingerPosition pos0 = detectPos(convertVolt);
-		convertVolt = readFileAss("/sys/devices/ocp.3/helper.15/AIN2", "AIN2", 2);
+		//convertVolt = readFileAss("/sys/devices/ocp.3/helper.15/AIN2", "AIN2", 2);
+		convertVolt = scale_flex(1000, 2);
 		fingerPosition pos1 = detectPos(convertVolt);
-		convertVolt = readFileAss("/sys/devices/ocp.3/helper.15/AIN6", "AIN6", 6);
+		//convertVolt = readFileAss("/sys/devices/ocp.3/helper.15/AIN6", "AIN6", 6);
+		convertVolt = scale_flex(1000, 6);
 		fingerPosition pos2 = detectPos(convertVolt);
-		convertVolt = readFileAss("/sys/devices/ocp.3/helper.15/AIN4", "AIN4", 4);
+		//convertVolt = readFileAss("/sys/devices/ocp.3/helper.15/AIN4", "AIN4", 4);
+		convertVolt = scale_flex(1000, 4);
 		fingerPosition pos3 = detectPos(convertVolt);
 
 		if (pos0 == OPEN) {
