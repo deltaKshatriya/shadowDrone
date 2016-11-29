@@ -3,6 +3,7 @@ import sys
 import time
 
 from Adafruit_BNO055 import BNO055
+from enum import Enum
 
 class gyroGesture.py:
 	heading = 0.0
@@ -22,3 +23,6 @@ class gyroGesture.py:
 		heading, roll, pitch = bno.read_euler()
 		# Read the calibration status, 0=uncalibrated and 3=fully calibrated.
     	sys, gyro, accel, mag = bno.get_calibration_status()
+    	return [heading, roll, pitch]
+
+    #TODO: Add means of discretizing the orientations so that we can actually do position recognition
