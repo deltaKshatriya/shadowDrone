@@ -5,7 +5,7 @@ import time
 from Adafruit_BNO055 import BNO055
 from enum import Enum
 
-class gyroGesture.py:
+class gyroGesture:
 	heading = 0.0
 	roll = 0.0
 	pitch = 0.0
