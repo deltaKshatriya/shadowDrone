@@ -19,7 +19,7 @@ class AnalogIO:
     def _coerce(self, x, low, high):
         if x < low:
             return low
-        if x > high;
+        if x > high:
             return high
         return x
 
@@ -38,9 +38,9 @@ class AnalogIO:
             return 0
 
     def get_scaled(self, channel):
-        raw = self.get_raw(channel);
+        raw = self.get_raw(channel)
         pos = float(raw - self.mins[channel]) / float(self.maxs[channel] - self.mins[channel])
-        return coerce(pos, 0, 1)e
+        return self._coerce(pos, 0, 1)
 
 a = AnalogIO("AnalogConfig.json")
 print(a.get_scaled(0))
