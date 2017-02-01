@@ -3,6 +3,7 @@ import time
 from Queue import Queue
 from gyroGesture import gyroGesture
 from gesture import gesture
+from AnalogIO import AnalogIO
 
 # Gyro input
 G = gyroGesture()
@@ -15,6 +16,8 @@ interval = 0.1
 max_time = 10.0
 # Maximum allowable discrepency before a gesture is recognized
 threshold = 100.0
+
+fingers = AnalogIO("AnalogConfig.json")
 
 # TODO: define real gestures
 gesture_list = [gesture((0,0,0),(0,0,0))]
@@ -34,8 +37,14 @@ static_queue = Queue()
 # Enqueue the current position, then update the discrepency values
 # accordingly.
 # TODO: More accurate time-keeping
-for range(max_time / interval):
-    enqueue(static_queue, g.getOrientation())
+for x in range(int(max_time / interval)):
+    enqueue(static_queue, [  \
+      G.getOrientation(),    \
+      fingers.get_scaled(0), \
+      fingers.get_scaled(1), \
+      fingers.get_scaled(2), \
+      fingers.get_scaled(3)])
+      
     if (static_queue.qsize() == max_length):
         for i in range(len(gesture_list)):
             g = gesture_list[i]
@@ -52,7 +61,7 @@ for range(max_time / interval):
         break
     time.sleep(interval)
     
-printf "Winning gesture is %d with a discrepency of %f" % \
+print "Winning gesture is %d with a discrepency of %f" % \
     winning_gesture, min_discrepency_list
         
         
