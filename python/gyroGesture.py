@@ -12,6 +12,7 @@ class gyroGesture:
 
   def initialize(self):
     self.bno = BNO055.BNO055(rst='P9_12')
+    self.bno.begin()
 
   def getOrientation(self): 
     # Read the Euler angles for heading, roll, pitch (all in degrees).
