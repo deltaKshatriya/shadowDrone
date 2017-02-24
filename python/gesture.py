@@ -61,6 +61,7 @@ class gesture:
       dr = self._360_dif(r, actual[0][1]) * mask[1]
       dp = self._360_dif(p, actual[0][2]) * mask[2]
       f = self._finger_discrepency(actual[1:])
+      #print(f)
       d = (dh + dr + dp) / (mask[0] + mask[1] + mask[2])
       return d + f
         

@@ -33,7 +33,7 @@ class AnalogIO:
             return int(text)
         except IOError:
             if (self.noError):
-                print("Warning, channel " + channel + " is not available at " + fname)
+                print("Warning, channel " + str(channel) + " is not available at " + fname)
                 self.noError = False;
             return 0
 

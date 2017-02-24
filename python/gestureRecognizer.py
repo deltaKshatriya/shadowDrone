@@ -13,7 +13,7 @@ max_length = 10
 # Time interval (in seconds) between static gestures
 interval = 0.1
 # Timeout in seconds
-max_time = 10.0
+max_time = 10000.0
 # Maximum allowable discrepency before a gesture is recognized
 threshold = 100.0
 
@@ -40,13 +40,16 @@ static_queue = Queue()
 for x in range(int(max_time / interval)):
   enqueue(static_queue, [  \
     G.getOrientation(),    \
-    0,0,0,0])
-    #fingers.get_scaled(0), \
-    #fingers.get_scaled(1), \
-    #fingers.get_scaled(2), \
-    #fingers.get_scaled(3)])
-  print(G.getOrientation())
-  print(gesture_list[0].discrepency([G.getOrientation(), 0, 0, 0, 0], 0, mask_list[0]))
+    fingers.get_scaled(0), \
+    fingers.get_scaled(1), \
+    fingers.get_scaled(2), \
+    fingers.get_scaled(3)])
+  print(fingers.get_scaled(0))
+  print(fingers.get_scaled(2))
+  print(fingers.get_scaled(3))
+  print("----")
+  #print(G.getOrientation())
+  #print(gesture_list[0].discrepency([G.getOrientation(), 0, 0, 0, 0], 0, mask_list[0]))
       
   if (static_queue.qsize() == max_length):
     for i in range(len(gesture_list)):
@@ -61,7 +64,7 @@ for x in range(int(max_time / interval)):
           
     if (min(discrepency_list) < threshold):
       winning_gesture = discrepency_list.index(min(discrepency_list))
-      break
+      #break
   time.sleep(interval)
     
 print "Winning gesture is %d with a discrepency of %f" % \
