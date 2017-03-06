@@ -20,3 +20,6 @@ class gyroGesture:
     # Read the calibration status, 0=uncalibrated and 3=fully calibrated.
     # sys, gyro, accel, mag = self.bno.get_calibration_status()
     return [heading, roll, pitch]
+    
+  def getAccel(self):
+    x, y, z = self.bno.read_accelerometer()

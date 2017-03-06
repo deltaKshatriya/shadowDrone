@@ -20,7 +20,7 @@ threshold = 100.0
 fingers = AnalogIO("AnalogConfig.json")
 
 # TODO: define real gestures
-gesture_list = [gesture("placeholder", (0,0,0), (0,0,0), (0,0,0,0))]
+gesture_list = [gesture("placeholder", (0,0,0), (0,0,0), (0,0,0), (0,0,0,0))]
 mask_list    = [(0, 1, 1)]
 discrepency_list = [0]
 
@@ -40,6 +40,7 @@ static_queue = Queue()
 for x in range(int(max_time / interval)):
   enqueue(static_queue, [  \
     G.getOrientation(),    \
+    G.getAccel(),          \
     fingers.get_scaled(0), \
     fingers.get_scaled(1), \
     fingers.get_scaled(2), \
