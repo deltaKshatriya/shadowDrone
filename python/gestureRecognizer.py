@@ -3,26 +3,54 @@ import time
 from Queue import Queue
 from gyroGesture import gyroGesture
 from gesture import gesture
+import gesture
 from AnalogIO import AnalogIO
 
 # Gyro input
 G = gyroGesture()
 G.initialize()
 # Number of static gestures to sequence
-max_length = 10
+max_length = 3
 # Time interval (in seconds) between static gestures
 interval = 0.1
 # Timeout in seconds
 max_time = 10000.0
 # Maximum allowable discrepency before a gesture is recognized
-threshold = 100.0
+threshold = 3.75
+# Maximum allowable time between static positions
+max_gap = 1.0
 
 fingers = AnalogIO("AnalogConfig.json")
 
-# TODO: define real gestures
-gesture_list = [gesture("placeholder", (0,0,0), (0,0,0), (0,0,0), (0,0,0,0))]
-mask_list    = [(0, 1, 1)]
-discrepency_list = [0]
+gesture_list = [gesture.OPEN_PALM_UP_RISING, \
+                gesture.OPEN_PALM_UP_FALLING, \
+                gesture.OPEN_PALM_DOWN_RISING, \
+                gesture.OPEN_PALM_DOWN_FALLING]
+                
+def perform_lift_off():
+  print("Lift off")
+def perform_land():
+  print("Land")
+  
+composite_list = [                 \
+  (                                \
+    perform_lift_off,              \
+    [                              \
+      gesture.OPEN_PALM_UP_RISING, \
+      gesture.OPEN_PALM_UP_FALLING \
+    ]                              \
+  ),                               \
+  (                                \
+    perform_land,                  \
+    [                              \
+      gesture.OPEN_PALM_DOWN_FALLING,\
+      gesture.OPEN_PALM_DOWN_RISING  \
+    ]                              \
+  )                                \
+]
+
+mask_list    = [(0,1,1), (0,1,1)]
+discrepency_list = [0, 0]
 
 winning_gesture = -1
 
@@ -33,6 +61,8 @@ def enqueue(q, x):
   q.put(x)
         
 static_queue = Queue()
+dynamic_list = []
+last_update = time.time()
 
 # Enqueue the current position, then update the discrepency values
 # accordingly.
@@ -45,12 +75,6 @@ for x in range(int(max_time / interval)):
     fingers.get_scaled(1), \
     fingers.get_scaled(2), \
     fingers.get_scaled(3)])
-  print(fingers.get_scaled(0))
-  print(fingers.get_scaled(2))
-  print(fingers.get_scaled(3))
-  print("----")
-  #print(G.getOrientation())
-  #print(gesture_list[0].discrepency([G.getOrientation(), 0, 0, 0, 0], 0, mask_list[0]))
       
   if (static_queue.qsize() == max_length):
     for i in range(len(gesture_list)):
@@ -61,14 +85,23 @@ for x in range(int(max_time / interval)):
       for static in list(static_queue.queue):
         d += g.discrepency(static, t, m)
         t += interval
-        discrepency_list[i] = d
-          
+      discrepency_list[i] = d
     if (min(discrepency_list) < threshold):
       winning_gesture = discrepency_list.index(min(discrepency_list))
-      #break
+      x = 0
+      new_update = time.time()
+      if new_update - last_update > max_gap:
+        dynamic_list[:] = []
+        if len(dynamic_list) == 0 or dynamic_list[-1] is not gesture_list[winning_gesture]:
+          dynamic_list.append(gesture_list[winning_gesture])
+          print(winning_gesture)
+        for comp in composite_list:
+          if len(comp[1]) == len(dynamic_list):
+            for real, target in zip(dynamic_list, comp[1]):
+              if real is not target:
+                break
+            else:
+              comp[0]()
+      last_update = new_update
+        
   time.sleep(interval)
-    
-print "Winning gesture is %d with a discrepency of %f" % \
-  (winning_gesture, min(discrepency_list))
-        
-        

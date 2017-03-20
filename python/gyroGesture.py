@@ -23,3 +23,4 @@ class gyroGesture:
     
   def getAccel(self):
     x, y, z = self.bno.read_accelerometer()
+    return [x, y, z]

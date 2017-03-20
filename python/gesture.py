@@ -51,7 +51,7 @@ class gesture:
     def _360_dif(self, x, y):
       d = abs(x - y)
       if d > 180:
-        return d - 180
+        return 360 - d
       else:
         return d
         
@@ -66,12 +66,13 @@ class gesture:
       dh = self._360_dif(h, actual[0][0]) * mask[0]
       dr = self._360_dif(r, actual[0][1]) * mask[1]
       dp = self._360_dif(p, actual[0][2]) * mask[2]
-      dax = abs(self.x_accel - actual[1][0])
-      day = abs(self.y_accel - actual[1][1])
-      daz = abs(self.z_accel - actual[1][2])
+      daz = abs(self.z_accel - actual[1][2]) / 9.8
       f = self._finger_discrepency(actual[2:])
-      #print(f)
-      d = (dh + dr + dp) / (mask[0] + mask[1] + mask[2])
-      da = dax + day + daz
-      return d + da + f
+      d = (dh + dr + dp) / (mask[0] + mask[1] + mask[2]) / 180
+      return d + daz + f
         
+
+OPEN_PALM_UP_RISING = gesture("Palm Up Rising", (0,0,180), (0,0,0), (0,0,-13.5), (0,0,0,0))
+OPEN_PALM_UP_FALLING = gesture("Palm Up Falling", (0,0,180), (0,0,0), (0,0,-5.5), (0,0,0,0))
+OPEN_PALM_DOWN_RISING = gesture("Palm Up Rising", (0,0,0), (0,0,0), (0,0,-13.5), (0,0,0,0))
+OPEN_PALM_DOWN_FALLING = gesture("Palm Up Falling", (0,0,0), (0,0,0), (0,0,-5.5), (0,0,0,0))
