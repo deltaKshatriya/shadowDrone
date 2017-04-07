@@ -68,7 +68,10 @@ class gesture:
       dp = self._360_dif(p, actual[0][2]) * mask[2]
       daz = abs(self.z_accel - actual[1][2]) / 9.8
       f = self._finger_discrepency(actual[2:])
-      d = (dh + dr + dp) / (mask[0] + mask[1] + mask[2]) / 180
+      if mask[0] + mask[1] + mask[2] > 0:
+        d = (dh + dr + dp) / (mask[0] + mask[1] + mask[2]) / 180
+      else:
+        d = 0
       return d + daz + f
         
 
@@ -76,3 +79,4 @@ OPEN_PALM_DOWN_RISING = gesture("Palm Down Rising", (0,0,180), (0,0,0), (0,0,13.
 OPEN_PALM_DOWN_FALLING = gesture("Palm Down Falling", (0,0,180), (0,0,0), (0,0,5.5), (0,0,0,0))
 OPEN_PALM_UP_RISING = gesture("Palm Up Rising", (0,0,0), (0,0,0), (0,0,-13.5), (0,0,0,0))
 OPEN_PALM_UP_FALLING = gesture("Palm Up Falling", (0,0,0), (0,0,0), (0,0,-5.5), (0,0,0,0))
+POINTING = gesture("Pointing", (0,0,0), (0,0,0), (9.8,0,0), (0,0.9,0.9,0.9))

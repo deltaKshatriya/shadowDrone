@@ -9,6 +9,8 @@ import gesture
 from AnalogIO import AnalogIO
 import socket
 
+import ps_drone
+
 TCP_IP = '192.168.7.2'
 TCP_PORT = 5005
 BUFFER_SIZE = 20
@@ -17,8 +19,8 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((TCP_IP, TCP_PORT))
 s.listen(1)
 
-#conn, addr = s.accept()
-conn = ""
+#drone = ps_drone.Drone()
+#drone.startup()
 
 # Gyro input
 G = gyroGesture()
@@ -29,26 +31,35 @@ max_length = 3
 interval = 0.1
 # Timeout in seconds
 max_time = 10000.0
-# Maximum allowable discrepency before a gesture is recognized
-threshold = 5.0
 # Maximum allowable time between static positions
 max_gap = 0.5
 
 fingers = AnalogIO("AnalogConfig.json")
 
-gesture_list = [gesture.OPEN_PALM_UP_RISING, \
+gesture_list = [gesture.POINTING, \
+                gesture.OPEN_PALM_UP_RISING, \
                 gesture.OPEN_PALM_UP_FALLING, \
                 gesture.OPEN_PALM_DOWN_RISING, \
                 gesture.OPEN_PALM_DOWN_FALLING]
-                
-def perform_lift_off(conn):
-  #conn.send("T")
+    
+def perform_go():
+  print("Go")
+  x,y,z = G.bno.read_magnetometer()
+  print((x,y,z))
+def perform_lift_off():
+  #drone.takeoff()
   print("Lift off")
-def perform_land(conn):
-  #conn.send("L")
+def perform_land():
   print("Land")
+  #drone.land()
   
 composite_list = [                 \
+  (                                \
+    perform_go,              \
+    [                              \
+      gesture.POINTING, \
+    ]                              \
+  ),                               \
   (                                \
     perform_lift_off,              \
     [                              \
@@ -65,8 +76,9 @@ composite_list = [                 \
   )                                \
 ]
 
-mask_list    = [(0,1,1),(0,1,1),(0,1,1),(0,1,1)]
-discrepency_list = [0, 0, 0, 0]
+mask_list    = [(0,0,0),(0,1,1),(0,1,1),(0,1,1),(0,1,1)]
+discrepency_list = [0, 0, 0, 0, 0]
+threshold_list = [2.0, 5.0, 5.0, 5.0, 5.0]
 
 winning_gesture = -1
 
@@ -101,8 +113,8 @@ try:
         for static in list(static_queue.queue):
           d += g.discrepency(static, t, m)
           t += interval
-        discrepency_list[i] = d
-      if (min(discrepency_list) < threshold):
+        discrepency_list[i] = d / threshold_list[i]
+      if min(discrepency_list) < 1.0:
         winning_gesture = discrepency_list.index(min(discrepency_list))
         x = 0
         new_update = time.time()
@@ -112,16 +124,18 @@ try:
           dynamic_list.append(gesture_list[winning_gesture])
           print([item.name for item in dynamic_list])
         for comp in composite_list:
+          if gesture.POINTING in comp and gesture.POINTING in dynamic_list:
+            comp[0]()
+            break
           if len(comp[1]) == len(dynamic_list):
             for real, target in zip(dynamic_list, comp[1]):
               if real is not target:
                 break
             else:
-              comp[0](conn)
+              comp[0]()
               dynamic_list[:] = []
         last_update = new_update
           
     time.sleep(interval)
 except KeyboardInterrupt:
-  conn.close()
   s.close()
