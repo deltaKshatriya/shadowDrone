@@ -14,13 +14,15 @@ import ps_drone
 TCP_IP = '192.168.7.2'
 TCP_PORT = 5005
 BUFFER_SIZE = 20
+ENABLE_DRONE = False
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((TCP_IP, TCP_PORT))
 s.listen(1)
 
-#drone = ps_drone.Drone()
-#drone.startup()
+if ENABLE_DRONE:
+  drone = ps_drone.Drone()
+  drone.startup()
 
 # Gyro input
 G = gyroGesture()
@@ -32,7 +34,7 @@ interval = 0.1
 # Timeout in seconds
 max_time = 10000.0
 # Maximum allowable time between static positions
-max_gap = 0.5
+max_gap = 1
 
 fingers = AnalogIO("AnalogConfig.json")
 
@@ -40,18 +42,33 @@ gesture_list = [gesture.POINTING, \
                 gesture.OPEN_PALM_UP_RISING, \
                 gesture.OPEN_PALM_UP_FALLING, \
                 gesture.OPEN_PALM_DOWN_RISING, \
-                gesture.OPEN_PALM_DOWN_FALLING]
+                gesture.OPEN_PALM_DOWN_FALLING, \
+                gesture.OPEN_PALM_UP, \
+                gesture.CLOSED_PALM_UP]
     
+def rotate_to(dir):
+  if ENABLE_DRONE:
+    
+  
 def perform_go():
   print("Go")
   x,y,z = G.bno.read_magnetometer()
-  print((x,y,z))
+  dir = compass_map(y, z)
+  done = rotate_to(dir)
+def perform_come():
+  print("Come")
+  x,y,z = G.bno.read_magnetometer()
+  dir = compass_map(y, z)
+  print((y, z))
+  print(-dir)
 def perform_lift_off():
-  #drone.takeoff()
+  if ENABLE_DRONE:
+    drone.takeoff()
   print("Lift off")
 def perform_land():
   print("Land")
-  #drone.land()
+  if ENABLE_DRONE:
+    drone.land()
   
 composite_list = [                 \
   (                                \
@@ -73,12 +90,19 @@ composite_list = [                 \
       gesture.OPEN_PALM_DOWN_FALLING,\
       gesture.OPEN_PALM_DOWN_RISING  \
     ]                              \
+  ),                                  \
+  (                                \
+    perform_come,                  \
+    [                              \
+      gesture.OPEN_PALM_UP,\
+      gesture.CLOSED_PALM_UP  \
+    ]                              \
   )                                \
 ]
 
-mask_list    = [(0,0,0),(0,1,1),(0,1,1),(0,1,1),(0,1,1)]
-discrepency_list = [0, 0, 0, 0, 0]
-threshold_list = [2.0, 5.0, 5.0, 5.0, 5.0]
+mask_list    = [(0,0,0),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1)]
+discrepency_list = [0, 0, 0, 0, 0, 0, 0]
+threshold_list = [2.0, 5.0, 5.0, 5.0, 4.0, 5.0, 5.0]
 
 winning_gesture = -1
 
@@ -87,6 +111,17 @@ def enqueue(q, x):
   if q.qsize() >= max_length:
       q.get()
   q.put(x)
+        
+def compass_map(dir, parity):
+  if dir > 0:
+    if parity > -10:
+      dir = (80 - abs(dir)) * (1 if dir > 0 else -1)
+    dir *= 180.0 / 80.0
+  if dir < 0:
+    if parity > 0:
+      dir = (80 - abs(dir)) * (1 if dir > 0 else -1)
+    dir *= 180.0 / 80.0
+  return dir
         
 static_queue = Queue()
 dynamic_list = []
@@ -122,19 +157,22 @@ try:
           dynamic_list[:] = []
         if len(dynamic_list) == 0 or dynamic_list[-1] is not gesture_list[winning_gesture]:
           dynamic_list.append(gesture_list[winning_gesture])
+          last_update = new_update
           print([item.name for item in dynamic_list])
         for comp in composite_list:
           if gesture.POINTING in comp and gesture.POINTING in dynamic_list:
             comp[0]()
             break
-          if len(comp[1]) == len(dynamic_list):
-            for real, target in zip(dynamic_list, comp[1]):
-              if real is not target:
+            
+          for start in range(len(dynamic_list)):
+            if len(comp[1]) <= len(dynamic_list) - start:
+              for i in range(start, len(dynamic_list)):
+                if dynamic_list[i] is not comp[1][i-start]:
+                  break
+              else:
+                comp[0]()
+                dynamic_list[:] = []
                 break
-            else:
-              comp[0]()
-              dynamic_list[:] = []
-        last_update = new_update
           
     time.sleep(interval)
 except KeyboardInterrupt:

@@ -79,4 +79,6 @@ OPEN_PALM_DOWN_RISING = gesture("Palm Down Rising", (0,0,180), (0,0,0), (0,0,13.
 OPEN_PALM_DOWN_FALLING = gesture("Palm Down Falling", (0,0,180), (0,0,0), (0,0,5.5), (0,0,0,0))
 OPEN_PALM_UP_RISING = gesture("Palm Up Rising", (0,0,0), (0,0,0), (0,0,-13.5), (0,0,0,0))
 OPEN_PALM_UP_FALLING = gesture("Palm Up Falling", (0,0,0), (0,0,0), (0,0,-5.5), (0,0,0,0))
+OPEN_PALM_UP = gesture("Open Palm Up", (0,0,0), (0,0,0), (0,0,-10), (0,0,0,0))
+CLOSED_PALM_UP = gesture("Closed Palm Up", (0,0,0), (0,0,0), (0,0,-10), (0.9,0.9,0.9,0.9))
 POINTING = gesture("Pointing", (0,0,0), (0,0,0), (9.8,0,0), (0,0.9,0.9,0.9))
