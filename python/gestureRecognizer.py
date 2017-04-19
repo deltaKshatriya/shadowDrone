@@ -23,6 +23,10 @@ s.listen(1)
 if ENABLE_DRONE:
   drone = ps_drone.Drone()
   drone.startup()
+  drone.reset()
+  time.sleep(1.0)
+  drone.useDemoMode(False)
+  drone.getNDpackage(["demo","pressure_raw","altitude","magneto","wifi"])
 
 # Gyro input
 G = gyroGesture()
@@ -31,6 +35,10 @@ G.initialize()
 max_length = 3
 # Time interval (in seconds) between static gestures
 interval = 0.1
+# Time interval between command updates to drone
+command_interval = 0.5
+# Degree deadband for drone rotation
+deadband = 10
 # Timeout in seconds
 max_time = 10000.0
 # Maximum allowable time between static positions
@@ -45,9 +53,33 @@ gesture_list = [gesture.POINTING, \
                 gesture.OPEN_PALM_DOWN_FALLING, \
                 gesture.OPEN_PALM_UP, \
                 gesture.CLOSED_PALM_UP]
+
+mask_list    = [(0,0,0),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1)]
+discrepency_list = [0, 0, 0, 0, 0, 0, 0]
+threshold_list = [2.0, 6.0, 5.0, 5.0, 5.0, 5.0, 4.0]
     
+  
 def rotate_to(dir):
   if ENABLE_DRONE:
+    drone_dir = drone.NavData["magneto"][0]
+    drone_dir = compass_map_drone(drone_dir[0], drone_dir[1])
+    diff = dir - drone_dir
+    if diff > 180:
+      diff -= 360
+    if diff < -180:
+      diff += 360
+    if diff > deadband:
+      drone.turnLeft()
+      time.sleep(command_interval)
+      drone.stop()
+      return False
+    elif diff < -deadband:
+      drone.turnRight()
+      time.sleep(command_interval)
+      drone.stop()
+      return False
+    else:
+      return True
     
   
 def perform_go():
@@ -100,10 +132,6 @@ composite_list = [                 \
   )                                \
 ]
 
-mask_list    = [(0,0,0),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1)]
-discrepency_list = [0, 0, 0, 0, 0, 0, 0]
-threshold_list = [2.0, 5.0, 5.0, 5.0, 4.0, 5.0, 5.0]
-
 winning_gesture = -1
 
 # Enqueue a value, respecting the maximum queue size constraints
@@ -122,6 +150,11 @@ def compass_map(dir, parity):
       dir = (80 - abs(dir)) * (1 if dir > 0 else -1)
     dir *= 180.0 / 80.0
   return dir
+  
+def compass_map_drone(x, y):
+  if x == 0:
+    return y * (180.0 / 100.0)
+  return (x / abs(x)) * (y * (180.0 / 100.0))
         
 static_queue = Queue()
 dynamic_list = []
