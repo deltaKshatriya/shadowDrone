@@ -24,6 +24,11 @@ drone.useDemoMode(False)                                                      # 
 drone.getNDpackage(["demo","pressure_raw","altitude","magneto","wifi"])       # Packets, which shall be decoded
 time.sleep(1.0)                                                               # Give it some time to awake fully after reset
 
+def compass_map_drone(x, y):
+  if x == 0:
+    return y * (180.0 / 100.0)
+  return (x / abs(x)) * (abs(y) * (180.0 / 100.0))
+
 ##### Mainprogram begin #####
 NDC = drone.NavDataCount
 end = False
@@ -31,8 +36,12 @@ while not end:
     while drone.NavDataCount == NDC:  time.sleep(0.001)                       # Wait until next time-unit
     if drone.getKey():                end = True                              # Stop if any key is pressed
     NDC=drone.NavDataCount
-    print("-----------")
-    print("Aptitude [X,Y,Z] :            "+str(drone.NavData["demo"][2]))
-    print("Altitude / sensor / pressure: "+str(drone.NavData["altitude"][3])+" / "+str(drone.State[21])+" / "+str(drone.NavData["pressure_raw"][0]))
-    print("Megnetometer [X,Y,Z]:         "+str(drone.NavData["magneto"][0]))
-    print("Wifi link quality:            "+str(drone.NavData["wifi"]))
+    time.sleep(0.05)
+    #print("-----------")
+    #print("Aptitude [X,Y,Z] :            "+str(drone.NavData["demo"][2]))
+    #print("Altitude / sensor / pressure: "+str(drone.NavData["altitude"][3])+" / "+str(drone.State[21])+" / "+str(drone.NavData["pressure_raw"][0]))
+    m = drone.NavData["magneto"][0]
+    print(compass_map_drone(m[0], m[1]))
+    #print("Wifi link quality:            "+str(drone.NavData["wifi"]))
+    
+

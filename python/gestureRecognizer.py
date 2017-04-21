@@ -8,13 +8,15 @@ from gesture import gesture
 import gesture
 from AnalogIO import AnalogIO
 import socket
+import math
 
 import ps_drone
 
 TCP_IP = '192.168.7.2'
 TCP_PORT = 5005
 BUFFER_SIZE = 20
-ENABLE_DRONE = False
+ENABLE_DRONE = True
+MOVEMENT_SPEED = 0.4
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((TCP_IP, TCP_PORT))
@@ -59,40 +61,51 @@ discrepency_list = [0, 0, 0, 0, 0, 0, 0]
 threshold_list = [2.0, 6.0, 5.0, 5.0, 5.0, 5.0, 4.0]
     
   
-def rotate_to(dir):
-  if ENABLE_DRONE:
-    drone_dir = drone.NavData["magneto"][0]
-    drone_dir = compass_map_drone(drone_dir[0], drone_dir[1])
-    diff = dir - drone_dir
-    if diff > 180:
-      diff -= 360
-    if diff < -180:
-      diff += 360
-    if diff > deadband:
-      drone.turnLeft()
-      time.sleep(command_interval)
-      drone.stop()
-      return False
-    elif diff < -deadband:
-      drone.turnRight()
-      time.sleep(command_interval)
-      drone.stop()
-      return False
-    else:
-      return True
+# def rotate_to(dir):
+  # if ENABLE_DRONE:
+    # drone_dir = drone.NavData["magneto"][0]
+    # drone_dir = compass_map_drone(drone_dir[0], drone_dir[1])
+    # diff = dir - drone_dir
+    # if diff > 180:
+      # diff -= 360
+    # if diff < -180:
+      # diff += 360
+    # if diff > deadband:
+      # drone.turnLeft()
+      # time.sleep(command_interval)
+      # drone.stop()
+      # return False
+    # elif diff < -deadband:
+      # drone.turnRight()
+      # time.sleep(command_interval)
+      # drone.stop()
+      # return False
+    # else:
+      # return True
     
   
 def perform_go():
   print("Go")
   x,y,z = G.bno.read_magnetometer()
   dir = compass_map(y, z)
-  done = rotate_to(dir)
+  x_com = y / 10
+  x_com = 1 if x_com > 1 else (-1 if x_com < -1 else x_com)
+  y_com = math.sin(math.acos(x_com))
+  print((x_com, y_com))
+  if ENABLE_DRONE:
+    x_com *= MOVEMENT_SPEED
+    y_com *= MOVEMENT_SPEED
+    drone.move(x_com, y_com, 0, 0)
+    time.sleep(0.1)
+    drone.stop()
+    
 def perform_come():
   print("Come")
   x,y,z = G.bno.read_magnetometer()
   dir = compass_map(y, z)
-  print((y, z))
+  print(dir)
   print(-dir)
+  
 def perform_lift_off():
   if ENABLE_DRONE:
     drone.takeoff()
