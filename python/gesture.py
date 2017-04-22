@@ -82,3 +82,5 @@ OPEN_PALM_UP_FALLING = gesture("Palm Up Falling", (0,0,0), (0,0,0), (0,0,-5.5), 
 OPEN_PALM_UP = gesture("Open Palm Up", (0,0,0), (0,0,0), (0,0,-10), (0,0,0,0))
 CLOSED_PALM_UP = gesture("Closed Palm Up", (0,0,0), (0,0,0), (0,0,-10), (0.9,0.9,0.9,0.9))
 POINTING = gesture("Pointing", (0,0,0), (0,0,0), (9.8,0,0), (0,0.9,0.9,0.9))
+CLOSED_FIST_UP = gesture("Fist Up", (0,0,0), (0,80,180), (0,0,0), (0.9,0.9,0.9,0.9))
+CLOSED_FIST_DOWN = gesture("Fist Down", (0,0,0), (0,-80,0), (0,0,0), (0.9,0.9,0.9,0.9))

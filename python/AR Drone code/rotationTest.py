@@ -2,7 +2,7 @@ import ps_drone
 import time, sys
 
 command_interval = 0.10
-deadband = 10
+deadband = 15
 
 
 def compass_map_drone(x, y):
@@ -16,13 +16,14 @@ def rotate_to(target, theta):
     diff -= 360
   if diff < -180:
     diff += 360
+  print(diff)
   if diff > deadband:
-    drone.turnLeft()
+    drone.turnRight(0.5)
     time.sleep(command_interval)
     drone.stop()
     return False
   elif diff < -deadband:
-    drone.turnRight()
+    drone.turnLeft(0.5)
     time.sleep(command_interval)
     drone.stop()
     return False
@@ -51,33 +52,10 @@ while not end:
     text = input()
     target = int(text)
     while not rotate_to(target, theta):
-      pass
+      m = drone.NavData["magneto"][0]
+      theta = compass_map_drone(m[0], m[1])
   except ValueError:
     break
 
 print("Landing")
 drone.land()
-
-def compass_map_drone(x, y):
-  if x == 0:
-    return y * (180.0 / 100.0)
-  return (x / abs(x)) * (abs(y) * (180.0 / 100.0))
-  
-def rotate_to(target, theta):
-  diff = target - theta
-  if diff > 180:
-    diff -= 360
-  if diff < -180:
-    diff += 360
-  if diff > deadband:
-    drone.turnLeft()
-    time.sleep(command_interval)
-    drone.stop()
-    return False
-  elif diff < -deadband:
-    drone.turnRight()
-    time.sleep(command_interval)
-    drone.stop()
-    return False
-  else:
-    return True

@@ -29,6 +29,7 @@ if ENABLE_DRONE:
   time.sleep(1.0)
   drone.useDemoMode(False)
   drone.getNDpackage(["demo","pressure_raw","altitude","magneto","wifi"])
+  print "Battery: " + str(drone.getBattery()[0]) + "% " + str(drone.getBattery()[1])
 
 # Gyro input
 G = gyroGesture()
@@ -38,9 +39,8 @@ max_length = 3
 # Time interval (in seconds) between static gestures
 interval = 0.1
 # Time interval between command updates to drone
-command_interval = 0.5
-# Degree deadband for drone rotation
-deadband = 10
+command_interval = 0.10
+deadband = 15
 # Timeout in seconds
 max_time = 10000.0
 # Maximum allowable time between static positions
@@ -54,50 +54,51 @@ gesture_list = [gesture.POINTING, \
                 gesture.OPEN_PALM_DOWN_RISING, \
                 gesture.OPEN_PALM_DOWN_FALLING, \
                 gesture.OPEN_PALM_UP, \
-                gesture.CLOSED_PALM_UP]
+                gesture.CLOSED_PALM_UP, \
+                gesture.CLOSED_FIST_UP, \
+                gesture.CLOSED_FIST_DOWN]
 
-mask_list    = [(0,0,0),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1)]
-discrepency_list = [0, 0, 0, 0, 0, 0, 0]
-threshold_list = [2.0, 6.0, 5.0, 5.0, 5.0, 5.0, 4.0]
-    
+mask_list    = [(0,0,0),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1)]
+discrepency_list = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+threshold_list = [2.0, 6.0, 5.0, 5.4, 5.4, 5.0, 4.0, 2.5, 2.5]
   
-# def rotate_to(dir):
-  # if ENABLE_DRONE:
-    # drone_dir = drone.NavData["magneto"][0]
-    # drone_dir = compass_map_drone(drone_dir[0], drone_dir[1])
-    # diff = dir - drone_dir
-    # if diff > 180:
-      # diff -= 360
-    # if diff < -180:
-      # diff += 360
-    # if diff > deadband:
-      # drone.turnLeft()
-      # time.sleep(command_interval)
-      # drone.stop()
-      # return False
-    # elif diff < -deadband:
-      # drone.turnRight()
-      # time.sleep(command_interval)
-      # drone.stop()
-      # return False
-    # else:
-      # return True
+def rotate_to(target, theta):
+  diff = target - theta + 90
+  while abs(diff) > 180:
+    if diff > 180:
+      diff -= 360
+    if diff < -180:
+      diff += 360
+  if diff > deadband:
+    drone.turnRight(0.5)
+    return False
+  elif diff < -deadband:
+    drone.turnLeft(0.5)
+    return False
+  else:
+    return True
     
   
 def perform_go():
   print("Go")
   x,y,z = G.bno.read_magnetometer()
   dir = compass_map(y, z)
-  x_com = y / 10
-  x_com = 1 if x_com > 1 else (-1 if x_com < -1 else x_com)
-  y_com = math.sin(math.acos(x_com))
-  print((x_com, y_com))
+  m = drone.NavData["magneto"][0]
+  theta = compass_map_drone(m[0], m[1])
   if ENABLE_DRONE:
-    x_com *= MOVEMENT_SPEED
-    y_com *= MOVEMENT_SPEED
-    drone.move(x_com, y_com, 0, 0)
-    time.sleep(0.1)
-    drone.stop()
+    complete = rotate_to(dir, theta)
+    if complete:
+      drone.moveForward(0.25)
+  # x_com = y / 10
+  # x_com = 1 if x_com > 1 else (-1 if x_com < -1 else x_com)
+  # y_com = math.sin(math.acos(x_com))
+  # print((x_com, y_com))
+  # if ENABLE_DRONE:
+    # x_com *= MOVEMENT_SPEED
+    # y_com *= MOVEMENT_SPEED
+    # drone.move(x_com, y_com, 0, 0)
+    # time.sleep(0.1)
+    # drone.stop()
     
 def perform_come():
   print("Come")
@@ -110,10 +111,25 @@ def perform_lift_off():
   if ENABLE_DRONE:
     drone.takeoff()
   print("Lift off")
+  
 def perform_land():
   print("Land")
   if ENABLE_DRONE:
     drone.land()
+    
+def perform_rise():
+  print("Rise")
+  if ENABLE_DRONE:
+    drone.moveUp(0.5)
+    time.sleep(command_interval)
+    drone.stop()
+    
+def perform_fall():
+  print("Fall")
+  if ENABLE_DRONE:
+    drone.moveDown(0.5)
+    time.sleep(command_interval)
+    drone.stop()
   
 composite_list = [                 \
   (                                \
@@ -142,6 +158,18 @@ composite_list = [                 \
       gesture.OPEN_PALM_UP,\
       gesture.CLOSED_PALM_UP  \
     ]                              \
+  ),                               \
+  (                                \
+    perform_rise,                  \
+    [                              \
+      gesture.CLOSED_FIST_UP  \
+    ]                              \
+  ),                               \
+  (                                \
+    perform_fall,                  \
+    [                              \
+      gesture.CLOSED_FIST_DOWN  \
+    ]                              \
   )                                \
 ]
 
@@ -167,7 +195,7 @@ def compass_map(dir, parity):
 def compass_map_drone(x, y):
   if x == 0:
     return y * (180.0 / 100.0)
-  return (x / abs(x)) * (y * (180.0 / 100.0))
+  return (x / abs(x)) * (abs(y) * (180.0 / 100.0))
         
 static_queue = Queue()
 dynamic_list = []
@@ -219,7 +247,8 @@ try:
                 comp[0]()
                 dynamic_list[:] = []
                 break
-          
+      else:
+        drone.stop()
     time.sleep(interval)
 except KeyboardInterrupt:
   s.close()
