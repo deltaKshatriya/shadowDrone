@@ -15,11 +15,13 @@ def calcOpticalFlow(prev, next):
 	return flow
 
 
-#takes a flow vector of image and calculates best obstacle avoidance strategy
-def obstacleAvoidRecommendation(flow):
+#calculates best obstacle avoidance strategy
+def obstacleAvoidRecommendation(prev, next):
 	#first we need to calculate flow in different parts of image
 	#for now, we sum all optical flow in the image
+	flow = calcOpticalFlow(prev, next)
 	sum = 0.0
-	for vector in flow:
-		sum = sum + (vector[0] * vector[0]) + (vector[1] * vector[1])
+	for row in flow:
+		for vector in row:
+			sum = sum + (vector[0] * vector[0]) + (vector[1] * vector[1])
 	print sum
