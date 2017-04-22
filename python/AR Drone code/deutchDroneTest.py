@@ -1,5 +1,18 @@
 import ps_drone
 import time, sys
+import socket
+
+TCP_IP = '192.168.7.2'
+TCP_PORT = 5005
+BUFFER_SIZE = 20
+
+#s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#s.bind((TCP_IP, TCP_PORT))
+
+#s.listen(1)
+#s.connect((TCP_IP, TCP_PORT))
+
+#print('Connection address: ', addr)
 
 drone = ps_drone.Drone()
 # drone.reset()                                      # Sets drone's status to good
@@ -8,25 +21,24 @@ drone = ps_drone.Drone()
 # drone.useDemoMode(False)                           # Give me everything...fast
 # drone.getNDpackage(["demo","pressure_raw","altitude","magneto","wifi"]) # Packets to decoded
 drone.startup()
-print("Init complete, now resting")
-time.sleep(0.5)  
-
-
+drone.trim()
+time.sleep(3)
+drone.takeoff()
+time.sleep(5)
+drone.land()
 
 # while True:
-# 	while drone.NavDataCount==NDC:
-# 		drone.getNDPackage("all")
+# 	data = s.recv(BUFFER_SIZE)
+# 	if not data: break
+# 	print("received data:", data)
+# 	if (data == 'L'):
+# 		#land
+# 		print("HAHA! IT'S LANDING!")
+# 		#drone.land()
+# 	if (data == 'T'):
+# 		#takeoff
+# 		print("HAHA! IT'S TAKING OFF!")
+# 		#drone.takeoff()
 
+# s.close()
 
-
-print("Begin take off")
-drone.takeoff() 
-print("Take off complete, resting")
-time.sleep(3)
-print("Begin m-trim")
-drone.mtrim()
-print("M-trim complete, resting")
-time.sleep(9)
-print("Landing")
-drone.land()
-print("Landing complete")
