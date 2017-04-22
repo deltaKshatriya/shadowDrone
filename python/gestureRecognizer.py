@@ -15,7 +15,7 @@ import ps_drone
 TCP_IP = '192.168.7.2'
 TCP_PORT = 5005
 BUFFER_SIZE = 20
-ENABLE_DRONE = True
+ENABLE_DRONE = False
 MOVEMENT_SPEED = 0.4
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -69,11 +69,12 @@ def rotate_to(target, theta):
       diff -= 360
     if diff < -180:
       diff += 360
+  print(diff)
   if diff > deadband:
-    drone.turnRight(0.5)
+    drone.turnRight(0.4)
     return False
   elif diff < -deadband:
-    drone.turnLeft(0.5)
+    drone.turnLeft(0.4)
     return False
   else:
     return True
@@ -83,12 +84,13 @@ def perform_go():
   print("Go")
   x,y,z = G.bno.read_magnetometer()
   dir = compass_map(y, z)
-  m = drone.NavData["magneto"][0]
-  theta = compass_map_drone(m[0], m[1])
   if ENABLE_DRONE:
-    complete = rotate_to(dir, theta)
+    m = drone.NavData["magneto"][0]
+    theta = compass_map_drone(m[0], m[1])
+    complete = True#rotate_to(dir, theta)
     if complete:
-      drone.moveForward(0.25)
+      drone.moveForward(0.15)
+      #drone.stop()
   # x_com = y / 10
   # x_com = 1 if x_com > 1 else (-1 if x_com < -1 else x_com)
   # y_com = math.sin(math.acos(x_com))
@@ -104,8 +106,8 @@ def perform_come():
   print("Come")
   x,y,z = G.bno.read_magnetometer()
   dir = compass_map(y, z)
-  print(dir)
-  print(-dir)
+  if ENABLE_DRONE:
+    drone.moveBackward(0.15)
   
 def perform_lift_off():
   if ENABLE_DRONE:
@@ -244,11 +246,15 @@ try:
                 if dynamic_list[i] is not comp[1][i-start]:
                   break
               else:
+                if gesture.OPEN_PALM_UP in dynamic_list:
+                  dynamic_list[:] = [gesture.OPEN_PALM_UP]
+                else:
+                  dynamic_list[:] = []
                 comp[0]()
-                dynamic_list[:] = []
                 break
-      else:
+      elif ENABLE_DRONE:
         drone.stop()
     time.sleep(interval)
 except KeyboardInterrupt:
   s.close()
+  
