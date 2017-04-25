@@ -21,10 +21,10 @@ drone = ps_drone.Drone()
 # drone.useDemoMode(False)                           # Give me everything...fast
 # drone.getNDpackage(["demo","pressure_raw","altitude","magneto","wifi"]) # Packets to decoded
 drone.startup()
-drone.trim()
-time.sleep(3)
 drone.takeoff()
-time.sleep(5)
+time.sleep(2)
+drone.mtrim()
+time.sleep(8)
 drone.land()
 
 # while True:

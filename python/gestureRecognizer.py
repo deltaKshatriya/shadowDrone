@@ -15,7 +15,7 @@ import ps_drone
 TCP_IP = '192.168.7.2'
 TCP_PORT = 5005
 BUFFER_SIZE = 20
-ENABLE_DRONE = False
+ENABLE_DRONE = True
 MOVEMENT_SPEED = 0.4
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -60,7 +60,7 @@ gesture_list = [gesture.POINTING, \
 
 mask_list    = [(0,0,0),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1),(0,1,1)]
 discrepency_list = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-threshold_list = [2.0, 6.0, 5.0, 5.4, 5.4, 5.0, 4.0, 2.5, 2.5]
+threshold_list = [2.0, 6.0, 5.0, 6, 5.6, 5.0, 4.0, 2.5, 2.5]
   
 def rotate_to(target, theta):
   diff = target - theta + 90
